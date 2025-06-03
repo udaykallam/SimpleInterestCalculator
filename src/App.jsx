@@ -1,94 +1,97 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./App.css";
 
 export default function App() {
   const [principal, setPrincipal] = useState("");
   const [rate, setRate] = useState("");
   const [time, setTime] = useState("");
-  const [interest, setInterest] = useState(null);
+  const [method, setMethod] = useState("simple");
+  const [emi, setEmi] = useState(null);
+  const [totalInterest, setTotalInterest] = useState(null);
   const [totalAmount, setTotalAmount] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [autoCalculate, setAutoCalculate] = useState(false);
   const [error, setError] = useState("");
 
   const calculate = () => {
-    setError("");
-    const p = parseFloat(principal);
-    const r = parseFloat(rate);
-    const t = parseFloat(time);
+    const P = parseFloat(principal);
+    const R = parseFloat(rate);
+    const T = parseFloat(time);
 
-    if (isNaN(p) || isNaN(r) || isNaN(t) || p <= 0 || r <= 0 || t <= 0) {
-      setError("Please enter valid positive numbers.");
-      setInterest(null);
-      setTotalAmount(null);
+    if (isNaN(P) || isNaN(R) || isNaN(T) || P <= 0 || R <= 0 || T <= 0) {
+      setError("Please enter positive values for all fields.");
       return;
     }
 
-    const si = (p * r * t) / 100;
-    setInterest(si.toFixed(2));
-    setTotalAmount((p + si).toFixed(2));
-    setHistory([
-      ...history,
-      { principal: p, rate: r, time: t, interest: si.toFixed(2) },
-    ]);
-  };
+    setError("");
 
-  useEffect(() => {
-    if (autoCalculate) calculate();
-  }, [principal, rate, time]);
+    if (method === "simple") {
+      const interest = (P * R * T) / 100;
+      const total = P + interest;
+      setTotalInterest(interest.toFixed(2));
+      setTotalAmount(total.toFixed(2));
+      setEmi(null);
+    } else {
+      // EMI Calculation
+      const monthlyRate = R / 12 / 100;
+      const n = T * 12; // total months
+      const emiCalc = (P * monthlyRate * Math.pow(1 + monthlyRate, n)) /
+                      (Math.pow(1 + monthlyRate, n) - 1);
+      const total = emiCalc * n;
+      const interest = total - P;
+
+      setEmi(emiCalc.toFixed(2));
+      setTotalAmount(total.toFixed(2));
+      setTotalInterest(interest.toFixed(2));
+    }
+  };
 
   const reset = () => {
     setPrincipal("");
     setRate("");
     setTime("");
-    setInterest(null);
+    setMethod("simple");
+    setEmi(null);
     setTotalAmount(null);
+    setTotalInterest(null);
     setError("");
   };
 
-  const clearHistory = () => setHistory([]);
-
   return (
     <div className="container">
-      <h1>Simple Interest Calculator</h1>
+      <h1>Loan & Interest Calculator</h1>
 
       <div className="input-group">
-        <label>Principal:</label>
+        <label>Loan Amount (₹):</label>
         <input
           type="number"
           value={principal}
           onChange={(e) => setPrincipal(e.target.value)}
-          placeholder="e.g., 5000"
         />
       </div>
 
       <div className="input-group">
-        <label>Rate (% per annum):</label>
+        <label>Annual Interest Rate (%):</label>
         <input
           type="number"
           value={rate}
           onChange={(e) => setRate(e.target.value)}
-          placeholder="e.g., 7.5"
         />
       </div>
 
       <div className="input-group">
-        <label>Time (in years):</label>
+        <label>Loan Period (years):</label>
         <input
           type="number"
           value={time}
           onChange={(e) => setTime(e.target.value)}
-          placeholder="e.g., 2"
         />
       </div>
 
-      <div className="toggle">
-        <input
-          type="checkbox"
-          checked={autoCalculate}
-          onChange={() => setAutoCalculate(!autoCalculate)}
-        />
-        <label>Auto-calculate</label>
+      <div className="input-group">
+        <label>Interest Type:</label>
+        <select value={method} onChange={(e) => setMethod(e.target.value)}>
+          <option value="simple">Simple Interest</option>
+          <option value="emi">EMI Based</option>
+        </select>
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -98,24 +101,11 @@ export default function App() {
         <button className="reset" onClick={reset}>Reset</button>
       </div>
 
-      {interest && (
+      {(emi || totalAmount) && (
         <div className="result">
-          <p><strong>Interest:</strong> ₹{interest}</p>
-          <p><strong>Total Amount:</strong> ₹{totalAmount}</p>
-        </div>
-      )}
-
-      {history.length > 0 && (
-        <div className="history">
-          <h3>History</h3>
-          <ul>
-            {history.map((item, idx) => (
-              <li key={idx}>
-                ₹{item.principal} at {item.rate}% for {item.time} year(s) → ₹{item.interest}
-              </li>
-            ))}
-          </ul>
-          <button className="clear-history" onClick={clearHistory}>Clear History</button>
+          {emi && <p><strong>Monthly EMI:</strong> ₹{emi}</p>}
+          <p><strong>Total Interest:</strong> ₹{totalInterest}</p>
+          <p><strong>Total Repayment:</strong> ₹{totalAmount}</p>
         </div>
       )}
     </div>
