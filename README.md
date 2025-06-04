@@ -72,8 +72,6 @@ npm -v
 
 ## 📸 Screenshots
 
-> Include screenshots in a `/screenshots` folder and reference them here:
-
 - ![App Screenshot Light](./screenshots/light-mode.png)
 - ![App Screenshot Dark](./screenshots/dark-mode.png)
 
