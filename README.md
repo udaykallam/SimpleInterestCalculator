@@ -49,7 +49,7 @@ npm -v
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/loan-interest-calculator.git
+   git clone https://github.com/udaykallam/loan-interest-calculator.git
    cd loan-interest-calculator
    ```
 
